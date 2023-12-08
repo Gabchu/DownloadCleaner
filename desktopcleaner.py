@@ -1,18 +1,20 @@
 import os
-import numpy as np
 import shutil
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
 
 
-def clean_desktop(path):
-    if not os.path.exists(path):
-        # If path does not exist, print folder doesn't exist
-        print(f"Folder does not exist: {path}")
+def clean_desktop_downloads(folder_path):
+    # Make sure the folder path exists
+    if not os.path.exists(folder_path):
+        print(f"Folder does not exist: {folder_path}")
         return
 
-    # List all the files
-    files = os.listdir(path)
+    # List all files in the folder
+    files = os.listdir(folder_path)
 
-    filetype = {
+    # Define categories for file types
+    file_types = {
         'Documents': ['doc', 'docx', 'xlsm', 'xls', '.PDF', 'xlsx', 'pdf', 'csv', 'pptx', 'epub'],
         'Codes': ['php', 'htm', 'ipynb'],
         'Images': ['drawio', 'svg', 'jpg'],
@@ -21,22 +23,31 @@ def clean_desktop(path):
         'Others': []
     }
 
-  # Function to look at unique extensions
-    # extensions = set()
+    # Create folders for each category if they don't exist
+    for category in file_types.keys():
+        category_path = os.path.join(folder_path, category)
+        if not os.path.exists(category_path):
+            os.makedirs(category_path)
 
-    # for file in files:
-    #     name, ext = os.path.splitext(file)
-    #     extensions.add(ext.encode('utf-8'))
-
-    # print(extensions)
-
-    for category in filetype:
-        categoryPath = os.path.join(path, category)
-        if not os.path.exists(categoryPath):
-            os.mkdir(categoryPath)
-
+    # Move files to their respective folders based on file type
     for file in files:
-        filePath = os.path.join(path)
+        file_path = os.path.join(folder_path, file)
+        if os.path.isfile(file_path):
+            for category, extensions in file_types.items():
+                if any(file.lower().endswith(ext) for ext in extensions):
+                    new_path = os.path.join(folder_path, category, file)
+                    shutil.move(file_path, new_path)
+                    print(f"Moved {file} to {category} folder.")
+                    break
+            else:
+                # If the file doesn't match any category, move it to the 'Others' folder
+                new_path = os.path.join(folder_path, "Others", file)
+                shutil.move(file_path, new_path)
+                print(f"Moved {file} to Others folder.")
 
 
-clean_desktop(r"C:\Users\terre\Downloads")
+if __name__ == "__main__":
+    # Change this path to the location of your desktop downloads folder
+    desktop_downloads_folder = r"C:\Users\terre\Downloads"
+
+    clean_desktop_downloads(desktop_downloads_folder)
